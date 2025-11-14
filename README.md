@@ -11,3 +11,6 @@ on a new terminal
 - Change value of VITE_KEY to any radom string
 - npm run dev
 
+Needed changes:
+- Update UI
+- reply feature
