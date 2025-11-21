@@ -1,9 +1,8 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ip } from "../ip";
 import { encrypt, decrypt } from "./functions/encryption";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
-import { useEffect } from "react";
 import "react-toastify/dist/ReactToastify.css";
 import Waves from "./components/Waves";
 
@@ -30,22 +29,30 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user || !password) {
-      toast.error("You didnt even fucking fill the details");
-    } else {
-      setUser(user.toLowerCase());
+    const username = (user || "").trim().toLowerCase();
+
+    if (!username || !password) {
+      toast.error("You didn't even fill the details");
+      return;
+    }
+
+    // keep the displayed username normalized
+    setUser(username);
+
+    try {
       const res = await fetch(`${ip}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user, password }),
+        body: JSON.stringify({ user: username, password }),
       });
+
       const data = await res.json();
       if (data.success) {
         sessionStorage.setItem(
           "identification",
           encrypt(
             JSON.stringify({
-              user,
+              user: username,
               loggedIn: true,
             })
           )
@@ -56,45 +63,73 @@ export default function Login() {
         toast.error(data.message);
         setPassword("");
       }
+    } catch (err) {
+      console.error(err);
+      toast.error("Network error");
     }
   };
 
   return (
-    <>
-      <Waves
-        lineColor="#fff"
-        backgroundColor="rgba(255, 255, 255, 0.2)"
-        waveSpeedX={0.02}
-        waveSpeedY={0.01}
-        waveAmpX={40}
-        waveAmpY={20}
-        friction={0.9}
-        tension={0.01}
-        maxCursorMove={120}
-        xGap={12}
-        yGap={36}
-      />
-      <div className="flex items-center justify-center h-screen bg-gray-900">
+    <div className="relative min-h-screen">
+      {/* Ensure a dark page background so light/white waves are visible */}
+      <div className="fixed inset-0 -z-30 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950" aria-hidden />
+
+      {/* Waves as a full-screen background. pointer-events-none keeps them decorative so the form remains interactable. */}
+      <div className="fixed inset-0 -z-20 pointer-events-none">
+        {/* Give the Waves container full size so the component has room to draw */}
+        <div className="w-full h-full">
+          <Waves
+            className="w-full h-full"
+            lineColor="#60A5FA" /* slightly visible blue */
+            backgroundColor="transparent"
+            waveSpeedX={0.02}
+            waveSpeedY={0.01}
+            waveAmpX={40}
+            waveAmpY={20}
+            friction={0.9}
+            tension={0.01}
+            maxCursorMove={120}
+            xGap={12}
+            yGap={36}
+          />
+        </div>
+      </div>
+
+      {/* Centered interactable form */}
+      <div className="flex items-center justify-center min-h-screen px-4">
         <form
           onSubmit={handleSubmit}
-          className="bg-gray-800 text-white p-8 rounded-2xl shadow-xl w-96"
+          className="relative z-20 w-full max-w-md bg-gray-800/70 backdrop-blur-md text-white p-8 rounded-2xl shadow-xl"
+          aria-label="Login form"
         >
           <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
 
+          <label htmlFor="username" className="sr-only">
+            Username
+          </label>
           <input
+            id="username"
+            name="username"
             type="text"
             value={user}
             onChange={(e) => setUser(e.target.value)}
             placeholder="Username"
-            className="w-full mb-4 p-3 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoComplete="username"
+            className="w-full mb-4 p-3 rounded bg-gray-700/70 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
+          <label htmlFor="password" className="sr-only">
+            Password
+          </label>
           <input
+            id="password"
+            name="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
-            className="w-full mb-6 p-3 rounded bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            autoComplete="current-password"
+            className="w-full mb-6 p-3 rounded bg-gray-700/70 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           <button
@@ -103,9 +138,13 @@ export default function Login() {
           >
             Login
           </button>
+
+          <ToastContainer position="top-right" />
         </form>
-        <ToastContainer />
       </div>
-    </>
+
+      {/* small debug hint - can remove: */}
+      {/* <div className="fixed bottom-4 right-4 text-xs text-gray-400 z-30">Waves background: z-20 form: z-20</div> */}
+    </div>
   );
 }
