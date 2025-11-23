@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Waves from "./components/Waves";
+import Example from "./components/EncryptButton";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -40,6 +41,8 @@ export default function Login() {
     setUser(username);
 
     try {
+      console.log(username,password);
+
       const res = await fetch(`${ip}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -102,7 +105,6 @@ export default function Login() {
           className="relative z-20 w-full max-w-md bg-gray-800/70 backdrop-blur-md text-white p-8 rounded-2xl shadow-xl"
           aria-label="Login form"
         >
-          <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
 
           <label htmlFor="username" className="sr-only">
             Username
@@ -132,16 +134,12 @@ export default function Login() {
             className="w-full mb-6 p-3 rounded bg-gray-700/70 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded font-semibold transition"
-          >
-            Login
-          </button>
-
-          <ToastContainer position="top-right" />
+          
+            <Example />
+          
         </form>
       </div>
+      <ToastContainer position="bottom-right" />
 
       {/* small debug hint - can remove: */}
       {/* <div className="fixed bottom-4 right-4 text-xs text-gray-400 z-30">Waves background: z-20 form: z-20</div> */}
